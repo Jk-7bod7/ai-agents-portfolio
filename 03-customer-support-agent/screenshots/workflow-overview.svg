@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#0a1420"/>
+  <rect x="55" y="55" width="1490" height="790" rx="28" fill="#112437" stroke="#28516f" stroke-width="3"/>
+  <text x="110" y="145" fill="#f8fafc" font-family="Arial, sans-serif" font-size="52" font-weight="700">Customer Support Agent</text>
+  <text x="112" y="195" fill="#91b3cc" font-family="Arial, sans-serif" font-size="25">n8n + Ollama • Demo knowledge base • Human-review gates</text>
+  <g font-family="Arial, sans-serif">
+    <rect x="105" y="315" width="230" height="150" rx="18" fill="#193149" stroke="#50a5d8" stroke-width="3"/>
+    <text x="220" y="370" text-anchor="middle" fill="#b9e3ff" font-size="22">Support Ticket</text>
+    <text x="220" y="410" text-anchor="middle" fill="#f8fafc" font-size="18">message + subject</text>
+    <rect x="390" y="315" width="230" height="150" rx="18" fill="#193149" stroke="#50a5d8" stroke-width="3"/>
+    <text x="505" y="370" text-anchor="middle" fill="#b9e3ff" font-size="22">Normalize</text>
+    <text x="505" y="410" text-anchor="middle" fill="#f8fafc" font-size="18">validate context</text>
+    <rect x="675" y="285" width="270" height="210" rx="18" fill="#203a3d" stroke="#49d3a8" stroke-width="3"/>
+    <text x="810" y="350" text-anchor="middle" fill="#a1f2d5" font-size="22">Policy Gate</text>
+    <text x="810" y="392" text-anchor="middle" fill="#f8fafc" font-size="18">billing • account</text>
+    <text x="810" y="425" text-anchor="middle" fill="#f8fafc" font-size="18">negative • unclear</text>
+    <text x="810" y="458" text-anchor="middle" fill="#f8fafc" font-size="18">escalation rules</text>
+    <rect x="1000" y="315" width="230" height="150" rx="18" fill="#193149" stroke="#50a5d8" stroke-width="3"/>
+    <text x="1115" y="370" text-anchor="middle" fill="#b9e3ff" font-size="22">AI Draft</text>
+    <text x="1115" y="410" text-anchor="middle" fill="#f8fafc" font-size="18">reply + category</text>
+    <rect x="1285" y="315" width="210" height="150" rx="18" fill="#3a2d22" stroke="#f2b764" stroke-width="3"/>
+    <text x="1390" y="370" text-anchor="middle" fill="#ffd89b" font-size="21">Human Review</text>
+    <text x="1390" y="410" text-anchor="middle" fill="#f8fafc" font-size="17">safe escalation</text>
+    <path d="M335 390 H390 M620 390 H675 M945 390 H1000 M1230 390 H1285" stroke="#83c6ee" stroke-width="5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="170" y="635" width="1260" height="100" rx="16" fill="#0d1c2b" stroke="#28516f" stroke-width="2"/>
+    <text x="800" y="680" text-anchor="middle" fill="#f8fafc" font-size="22">Safety: no ticket update • no message sent • no real customer data</text>
+    <text x="800" y="715" text-anchor="middle" fill="#91b3cc" font-size="18">Knowledge-grounded draft with explicit fallback and escalation behavior</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#83c6ee"/></marker></defs>
+</svg>
