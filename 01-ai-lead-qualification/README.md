@@ -43,6 +43,11 @@ After import, select or create a local Ollama credential and choose an
 installed local model. The public export intentionally contains no credential
 secret. See `TEST-CASES.md` for manual demo scenarios.
 
+## Visuals
+
+- [Workflow overview](./screenshots/workflow-overview.svg)
+- [Qualification output](./screenshots/qualification-output.svg)
+
 ## Limitations
 
 This is a portfolio demo, not a production CRM integration. It does not send

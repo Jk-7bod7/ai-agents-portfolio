@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#111827"/>
+  <text x="70" y="82" fill="#f9fafb" font-family="Arial, sans-serif" font-size="34" font-weight="700">Qualification Output</text>
+  <text x="70" y="122" fill="#9ca3af" font-family="Arial, sans-serif" font-size="20">Demo result generated from synthetic lead data</text>
+  <rect x="70" y="180" width="1060" height="170" rx="20" fill="#1f2937" stroke="#22c55e" stroke-width="3"/>
+  <text x="105" y="230" fill="#9ca3af" font-family="Arial, sans-serif" font-size="18">LEAD</text>
+  <text x="105" y="275" fill="#fff" font-family="Arial, sans-serif" font-size="28" font-weight="700">Sara Hassan · Demo Startup</text>
+  <text x="105" y="315" fill="#d1d5db" font-family="Arial, sans-serif" font-size="19">Budget: $5,000 · Company size: 25 · Timeline: This month</text>
+  <g transform="translate(70 410)"><rect width="300" height="170" rx="20" fill="#064e3b" stroke="#34d399" stroke-width="2"/><text x="30" y="52" fill="#a7f3d0" font-family="Arial, sans-serif" font-size="18">RULE-BASED SCORE</text><text x="30" y="120" fill="#fff" font-family="Arial, sans-serif" font-size="58" font-weight="700">100/100</text></g>
+  <g transform="translate(420 410)"><rect width="300" height="170" rx="20" fill="#172554" stroke="#60a5fa" stroke-width="2"/><text x="30" y="52" fill="#bfdbfe" font-family="Arial, sans-serif" font-size="18">CLASSIFICATION</text><text x="30" y="120" fill="#fff" font-family="Arial, sans-serif" font-size="42" font-weight="700">Hot Lead</text></g>
+  <g transform="translate(770 410)"><rect width="360" height="170" rx="20" fill="#1f2937" stroke="#a78bfa" stroke-width="2"/><text x="30" y="52" fill="#ddd6fe" font-family="Arial, sans-serif" font-size="18">NEXT ACTION</text><text x="30" y="94" fill="#fff" font-family="Arial, sans-serif" font-size="21">Schedule a discovery</text><text x="30" y="126" fill="#fff" font-family="Arial, sans-serif" font-size="21">call or demo</text></g>
+  <text x="70" y="680" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="18">Generated locally with Ollama · Example only · sara@example.test</text>
+</svg>

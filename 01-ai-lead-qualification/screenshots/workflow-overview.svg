@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+  <rect width="1400" height="760" fill="#111827"/>
+  <text x="70" y="82" fill="#f9fafb" font-family="Arial, sans-serif" font-size="34" font-weight="700">AI Lead Qualification</text>
+  <text x="70" y="122" fill="#9ca3af" font-family="Arial, sans-serif" font-size="20">Local n8n workflow · synthetic data · Ollama-powered explanation</text>
+  <g font-family="Arial, sans-serif">
+    <g transform="translate(70 260)"><rect width="230" height="130" rx="18" fill="#1f2937" stroke="#22c55e" stroke-width="3"/><text x="24" y="52" fill="#86efac" font-size="18">01</text><text x="24" y="84" fill="#fff" font-size="22" font-weight="700">Manual Trigger</text><text x="24" y="112" fill="#9ca3af" font-size="16">Start a demo run</text></g>
+    <g transform="translate(390 260)"><rect width="230" height="130" rx="18" fill="#1f2937" stroke="#22c55e" stroke-width="3"/><text x="24" y="52" fill="#86efac" font-size="18">02</text><text x="24" y="84" fill="#fff" font-size="22" font-weight="700">Edit Fields</text><text x="24" y="112" fill="#9ca3af" font-size="16">Mock lead JSON</text></g>
+    <g transform="translate(710 260)"><rect width="230" height="130" rx="18" fill="#1f2937" stroke="#22c55e" stroke-width="3"/><text x="24" y="52" fill="#86efac" font-size="18">03</text><text x="24" y="84" fill="#fff" font-size="22" font-weight="700">Code</text><text x="24" y="112" fill="#9ca3af" font-size="16">Score + validation</text></g>
+    <g transform="translate(1030 260)"><rect width="270" height="130" rx="18" fill="#1f2937" stroke="#22c55e" stroke-width="3"/><text x="24" y="52" fill="#86efac" font-size="18">04</text><text x="24" y="84" fill="#fff" font-size="22" font-weight="700">Basic LLM Chain</text><text x="24" y="112" fill="#9ca3af" font-size="16">Summary + next action</text></g>
+    <path d="M300 325h90M620 325h90M940 325h90" stroke="#4ade80" stroke-width="5"/><path d="m375 312 18 13-18 13M695 312l18 13-18 13M1005 312l18 13-18 13" fill="#4ade80"/>
+    <g transform="translate(700 500)"><rect width="300" height="105" rx="16" fill="#172554" stroke="#60a5fa" stroke-width="2"/><text x="24" y="42" fill="#bfdbfe" font-size="18">Local model</text><text x="24" y="76" fill="#fff" font-size="24" font-weight="700">Ollama · llama3</text></g>
+    <path d="M1165 390v60H850v50" fill="none" stroke="#60a5fa" stroke-width="4" stroke-dasharray="10 8"/>
+    <text x="70" y="690" fill="#6ee7b7" font-size="18">No cloud API keys · No real customer data · Not published/activated</text>
+  </g>
+</svg>
