@@ -1,0 +1,129 @@
+{
+  "name": "01 - AI Lead Qualification",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "67a84a51-3121-427f-a78b-a0cd5eb8edeb",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"name\": \"Sara Hassan\",\n  \"company\": \"Demo Startup\",\n  \"email\": \"sara@example.test\",\n  \"budget\": 5000,\n  \"companySize\": 25,\n  \"problem\": \"We need to automate lead follow-up\",\n  \"timeline\": \"This month\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "8f03f386-fc73-49e4-b480-20b1c9b9e6a2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $input.first().json;\nconst required = ['name', 'company', 'budget', 'companySize', 'problem', 'timeline'];\nconst missing = required.filter((field) => lead[field] === undefined || lead[field] === null || String(lead[field]).trim() === '');\nif (missing.length) {\n  return [{ json: { ...lead, qualificationScore: 0, classification: 'Needs Review', reasons: ['Missing required fields: ' + missing.join(', ')], explanation: 'Lead cannot be scored until required fields are provided.' } }];\n}\nlet score = 0;\nconst reasons = [];\nif (Number(lead.budget) >= 5000) { score += 30; reasons.push('Budget meets the target threshold'); }\nif (String(lead.timeline).toLowerCase().includes('month')) { score += 25; reasons.push('Buying timeline is within one month'); }\nif (String(lead.problem).trim().length >= 20) { score += 25; reasons.push('The business problem is clearly described'); }\nif (Number(lead.companySize) >= 10) { score += 20; reasons.push('Company size suggests a meaningful use case'); }\nconst classification = score >= 75 ? 'Hot Lead' : score >= 50 ? 'Warm Lead' : score > 0 ? 'Cold Lead' : 'Needs Review';\nreturn [{ json: { ...lead, qualificationScore: score, classification, reasons, explanation: classification + ': scored ' + score + '/100 based on budget, timeline, problem clarity, and company size.' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "72deb6bd-e062-4abd-92e0-796a6f7c9554",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a sales qualification assistant. Analyze this demo lead and return a concise explanation plus one recommended next action. Do not invent facts.\n\nLead data:\nName: {{$json.name}}\nCompany: {{$json.company}}\nBudget: {{$json.budget}}\nCompany size: {{$json.companySize}}\nProblem: {{$json.problem}}\nTimeline: {{$json.timeline}}\nRule-based score: {{$items(\"Code in JavaScript\")[0].json.qualificationScore}}\nClassification: {{$items(\"Code in JavaScript\")[0].json.classification}}\n\nReturn exactly two lines:\nSummary: ...\nNext action: ...",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        0
+      ],
+      "id": "1e75894d-fae5-4e93-b7a5-a9908b413a66",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        608,
+        208
+      ],
+      "id": "2ac154a6-7608-402e-8269-c5063450e308",
+      "name": "Ollama Chat Model"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b6724a03-d95e-4f1e-b21c-56d191497944",
+  "nodeGroups": [],
+  "id": "wsefCiBcXektgKHg",
+  "tags": []
+}

@@ -1,0 +1,16 @@
+# Local/editor files
+.env
+.env.*
+!.env.example
+node_modules/
+.n8n/
+
+# Runtime and OS files
+*.log
+*.sqlite
+*.db
+.DS_Store
+Thumbs.db
+
+# Keep local credential-bearing exports out of public repositories
+*.private.n8n.json
