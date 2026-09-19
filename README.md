@@ -7,7 +7,7 @@ Portfolio projects built for local n8n demonstrations with synthetic data.
 1. [AI Lead Qualification](./01-ai-lead-qualification/) — working MVP with
    rule-based scoring, validation, local Ollama explanation, and an importable
    public n8n export.
-2. AI Email Assistant — planned.
+2. [AI Email Assistant](./02-ai-email-assistant/) — working MVP with local Ollama classification, draft generation, validation, and human-review guardrails.
 3. Customer Support Agent — planned.
 4. AI Research Agent — planned.
 
