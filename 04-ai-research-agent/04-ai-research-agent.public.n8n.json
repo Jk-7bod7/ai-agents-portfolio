@@ -1,0 +1,89 @@
+{
+  "name": "04 - AI Research Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "a1011a10-4e65-4a29-9f6c-4fd5f2010101",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"researchId\": \"demo-research-001\",\n  \"question\": \"What are practical ways a small team can reduce manual lead follow-up work with AI automation?\",\n  \"audience\": \"Operations manager\",\n  \"sources\": [\n    {\"id\": \"demo-source-a\", \"title\": \"Synthetic operations interview\", \"text\": \"A small sales team reported that structured lead scoring and automatic reminders reduced missed follow-ups in a controlled internal pilot. The interview did not report a percentage or a financial result.\"},\n    {\"id\": \"demo-source-b\", \"title\": \"Synthetic workflow review\", \"text\": \"A workflow review found that validation, clear ownership, and human approval for uncertain leads were important for reliable AI-assisted follow-up. It recommended measuring response time and qualified meetings separately.\"}\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [224, 0],
+      "id": "b2022b20-5f76-4b30-a07d-5fe6f3020202",
+      "name": "Mock Research Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst question = String(input.question ?? '').replace(/\\s+/g, ' ').trim();\nconst audience = String(input.audience ?? '').replace(/\\s+/g, ' ').trim();\nconst sources = Array.isArray(input.sources) ? input.sources.filter((source) => source && source.id && source.title && source.text).map((source) => ({ id: String(source.id), title: String(source.title).trim(), text: String(source.text).replace(/\\s+/g, ' ').trim() })) : [];\nconst missing = [];\nif (!question) missing.push('question');\nif (!sources.length) missing.push('sources');\nreturn [{ json: { ...input, question, audience, sources, sourceCount: sources.length, missingFields: missing, inputValid: missing.length === 0 && question.length >= 15 } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 0],
+      "id": "c3033c30-6a87-4c41-b18e-6af7f4030303",
+      "name": "Normalize Research Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const research = $input.first().json;\nconst qualityIssues = [];\nif (!research.inputValid) qualityIssues.push('Research question or sources are missing or too short');\nif (research.sources.length < 2) qualityIssues.push('Fewer than two sources were provided');\nconst sourceText = research.sources.map((source) => source.text.toLowerCase()).join(' ');\nif (sourceText.length < 80) qualityIssues.push('Evidence context is unusually short');\nreturn [{ json: { ...research, qualityIssues, evidenceQuality: qualityIssues.length === 0 ? 'usable_demo_evidence' : 'limited_demo_evidence', requiresHumanReview: qualityIssues.length > 0 } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, 0],
+      "id": "d4044d40-7b98-4d52-829f-7bf804040404",
+      "name": "Evidence Quality Gate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an evidence-first research assistant operating on a closed set of synthetic sources. Do not browse, use outside knowledge, invent facts, invent numbers, or create citations that are not present. Return ONLY valid JSON with exactly these keys: summary, keyFindings, sourceComparison, confidence, limitations, sourcesUsed. keyFindings must be an array of objects with finding and sourceIds. sourceComparison must be an array of objects with sourceId and contribution. confidence must be high, medium, or low. If evidence is limited or sources conflict, lower confidence and explain it in limitations.\n\nResearch question: {{$json.question}}\nAudience: {{$json.audience}}\nInput valid: {{$json.inputValid}}\nEvidence quality: {{$json.evidenceQuality}}\nQuality issues: {{$json.qualityIssues}}\nClosed synthetic sources: {{$json.sources}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [896, 0],
+      "id": "e5055e50-8c09-4e63-93a0-8cf905050505",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": { "model": "llama3:latest", "options": {} },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [832, 208],
+      "id": "f6066f60-9d10-4f74-a4b1-9df016060606",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "const research = $items('Evidence Quality Gate')[0].json;\nconst raw = String($input.first().json.text ?? $input.first().json.response ?? '');\nlet parsed;\ntry {\n  const cleaned = raw.replace(/^```json\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  parsed = { summary: 'The model did not return a valid structured brief.', keyFindings: [], sourceComparison: [], confidence: 'low', limitations: ['Invalid structured AI output'], sourcesUsed: [] };\n}\nconst limitations = Array.isArray(parsed.limitations) ? [...parsed.limitations] : [];\nif (research.qualityIssues.length) limitations.push(...research.qualityIssues);\nconst needsHumanReview = Boolean(research.requiresHumanReview) || research.qualityIssues.length > 0 || parsed.confidence === 'low' || !parsed.summary;\nreturn [{ json: { researchId: research.researchId, question: research.question, audience: research.audience, summary: parsed.summary ?? '', keyFindings: parsed.keyFindings ?? [], sourceComparison: parsed.sourceComparison ?? [], confidence: parsed.confidence ?? 'low', needsHumanReview, limitations, sourcesUsed: parsed.sourcesUsed ?? [], safetyNote: 'Closed-set draft only. No web search, external API, or publication was performed.' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 0],
+      "id": "07171710-af21-4078-b5c2-bf1707070707",
+      "name": "Format Research Brief"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": { "main": [[{ "node": "Mock Research Data", "type": "main", "index": 0 }]] },
+    "Mock Research Data": { "main": [[{ "node": "Normalize Research Request", "type": "main", "index": 0 }]] },
+    "Normalize Research Request": { "main": [[{ "node": "Evidence Quality Gate", "type": "main", "index": 0 }]] },
+    "Evidence Quality Gate": { "main": [[{ "node": "Basic LLM Chain", "type": "main", "index": 0 }]] },
+    "Basic LLM Chain": { "main": [[{ "node": "Format Research Brief", "type": "main", "index": 0 }]] },
+    "Ollama Chat Model": { "ai_languageModel": [[{ "node": "Basic LLM Chain", "type": "ai_languageModel", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1", "binaryMode": "separate" },
+  "versionId": "4b2c4fb1-51b4-4d07-c8e6-4fd181818181",
+  "nodeGroups": [],
+  "tags": []
+}
