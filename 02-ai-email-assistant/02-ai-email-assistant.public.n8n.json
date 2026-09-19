@@ -1,0 +1,81 @@
+{
+  "name": "02 - AI Email Assistant",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "a2d4a5e2-5c6d-4f71-a6a4-3f07e116b201",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"messageId\": \"demo-email-001\",\n  \"from\": \"mona@example.test\",\n  \"subject\": \"Question about automating lead follow-up\",\n  \"receivedAt\": \"2026-09-19T10:00:00Z\",\n  \"body\": \"Hi, we are evaluating an automation that can qualify inbound leads and route the best ones to our sales team. Could you share the expected setup and a rough timeline for a demo?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [224, 0],
+      "id": "c24db2bb-0b3c-46bb-ae88-8ee1d890f302",
+      "name": "Mock Email Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.first().json;\nconst required = ['messageId', 'from', 'subject', 'body'];\nconst missing = required.filter((field) => email[field] === undefined || email[field] === null || String(email[field]).trim() === '');\nconst body = String(email.body ?? '').replace(/\\s+/g, ' ').trim();\nconst subject = String(email.subject ?? '').replace(/\\s+/g, ' ').trim();\nreturn [{ json: { ...email, subject, body, bodyLength: body.length, missingFields: missing, inputValid: missing.length === 0 && body.length >= 10 } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 0],
+      "id": "db315213-0f85-4fae-a9c9-e25d5f44d5a1",
+      "name": "Normalize Email"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI email assistant operating in draft-only mode. Analyze the synthetic email below. Do not invent facts, policies, prices, dates, order numbers, or promises. Never send an email. Return ONLY valid JSON with these exact keys: category, priority, sentiment, customerRequest, suggestedReply, needsHumanReview, reviewReasons.\n\nAllowed category values: sales_inquiry, support_request, billing_or_account, feedback, general_inquiry, other.\nAllowed priority values: low, medium, high.\nAllowed sentiment values: positive, neutral, negative.\n\nSet needsHumanReview to true if the email is incomplete, negative, asks for a refund/account access, contains sensitive or unclear requests, or if you cannot confidently classify it. suggestedReply must be a concise professional draft and must not claim an action was completed.\n\nEmail:\nFrom: {{$json.from}}\nSubject: {{$json.subject}}\nBody: {{$json.body}}\nInput valid: {{$json.inputValid}}\nMissing fields: {{$json.missingFields}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [672, 0],
+      "id": "ed6d222c-b3b3-42ed-a9e1-5db93ed8bfcb",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [608, 208],
+      "id": "60cebed4-df67-4257-906d-317c661ab5ee",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $items('Normalize Email')[0].json;\nconst raw = String($input.first().json.text ?? $input.first().json.response ?? '');\nlet parsed;\ntry {\n  const cleaned = raw.replace(/^```json\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  parsed = {\n    category: 'other',\n    priority: 'medium',\n    sentiment: 'neutral',\n    customerRequest: 'The model did not return valid structured output.',\n    suggestedReply: 'Thanks for reaching out. We received your message and will review it before replying.',\n    needsHumanReview: true,\n    reviewReasons: ['Invalid structured AI output']\n  };\n}\nconst reviewReasons = Array.isArray(parsed.reviewReasons) ? parsed.reviewReasons : [];\nif (!email.inputValid) reviewReasons.push('Input email is missing required fields or has an unusually short body');\nconst needsHumanReview = Boolean(parsed.needsHumanReview) || reviewReasons.length > 0;\nreturn [{ json: { ...email, category: parsed.category ?? 'other', priority: parsed.priority ?? 'medium', sentiment: parsed.sentiment ?? 'neutral', customerRequest: parsed.customerRequest ?? '', suggestedReply: parsed.suggestedReply ?? '', needsHumanReview, reviewReasons, safetyNote: 'Draft only. No email was sent and no external service was called.' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [896, 0],
+      "id": "f3fa3e0c-b9b6-4c3c-9da9-8fcfa3f5b1e8",
+      "name": "Format Email Decision"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": { "main": [[{ "node": "Mock Email Data", "type": "main", "index": 0 }]] },
+    "Mock Email Data": { "main": [[{ "node": "Normalize Email", "type": "main", "index": 0 }]] },
+    "Normalize Email": { "main": [[{ "node": "Basic LLM Chain", "type": "main", "index": 0 }]] },
+    "Basic LLM Chain": { "main": [[{ "node": "Format Email Decision", "type": "main", "index": 0 }]] },
+    "Ollama Chat Model": { "ai_languageModel": [[{ "node": "Basic LLM Chain", "type": "ai_languageModel", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1", "binaryMode": "separate" },
+  "versionId": "9d2fa89f-22a2-4d0a-8f11-9e6e63515fbb",
+  "nodeGroups": [],
+  "tags": []
+}

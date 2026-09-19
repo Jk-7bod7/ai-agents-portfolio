@@ -10,6 +10,7 @@ node_modules/
 *.sqlite
 *.db
 .DS_Store
+.tmp-chrome-render/
 Thumbs.db
 
 # Keep local credential-bearing exports out of public repositories
