@@ -8,7 +8,7 @@ Portfolio projects built for local n8n demonstrations with synthetic data.
    rule-based scoring, validation, local Ollama explanation, and an importable
    public n8n export.
 2. [AI Email Assistant](./02-ai-email-assistant/) — working MVP with local Ollama classification, draft generation, validation, and human-review guardrails.
-3. Customer Support Agent — planned.
+3. [Customer Support Agent](./03-customer-support-agent/) — working MVP with demo knowledge, escalation rules, local Ollama drafting, and safe human-review gates.
 4. AI Research Agent — planned.
 
 ## Safety
