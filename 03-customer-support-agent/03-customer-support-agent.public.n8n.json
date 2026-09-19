@@ -1,0 +1,89 @@
+{
+  "name": "03 - Customer Support Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "f7f4e5e2-ec62-4568-9c7f-7c9fa9ac0101",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"ticketId\": \"demo-ticket-001\",\n  \"from\": \"youssef@example.test\",\n  \"subject\": \"Dashboard export is empty\",\n  \"message\": \"Hi support, the dashboard export completed but the downloaded CSV is empty. I tried it twice today. What should I check?\",\n  \"knowledgeBase\": [\n    {\"title\": \"Empty dashboard export\", \"content\": \"Ask the user to confirm a date range is selected, refresh the dashboard, and run the export again. If the CSV is still empty, collect the dashboard name and export time for technical review.\"},\n    {\"title\": \"Password reset\", \"content\": \"Users can start a password reset from the sign-in page. Never ask for or expose a password or reset token.\"},\n    {\"title\": \"Refund requests\", \"content\": \"Refund requests require human review. Do not promise approval or a refund timeline.\"}\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [224, 0],
+      "id": "4edc4dcc-49c0-4e4d-a0d1-1c51b39bb102",
+      "name": "Mock Support Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst message = String(input.message ?? '').replace(/\\s+/g, ' ').trim();\nconst subject = String(input.subject ?? '').replace(/\\s+/g, ' ').trim();\nconst missing = ['ticketId', 'from', 'message'].filter((field) => input[field] === undefined || input[field] === null || String(input[field]).trim() === '');\nreturn [{ json: { ...input, message, subject, messageLength: message.length, missingFields: missing, inputValid: missing.length === 0 && message.length >= 10 } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 0],
+      "id": "e1d2cb5f-c9b8-4ab5-8b23-2d06cc44b203",
+      "name": "Normalize Support Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticket = $input.first().json;\nconst text = (ticket.subject + ' ' + ticket.message).toLowerCase();\nconst escalationReasons = [];\nif (!ticket.inputValid) escalationReasons.push('Missing required support context or message is too short');\nif (/refund|chargeback|cancel.*subscription|payment/.test(text)) escalationReasons.push('Billing or refund request requires human review');\nif (/password|login|log in|account access|reset token/.test(text)) escalationReasons.push('Account access request requires human review');\nif (/furious|angry|useless|legal action|lawsuit|complaint/.test(text)) escalationReasons.push('Negative or escalated language requires human review');\nconst matchedKnowledge = (ticket.knowledgeBase ?? []).filter((entry) => {\n  const words = entry.title.toLowerCase().split(/\\s+/).filter((word) => word.length > 3);\n  return words.some((word) => text.includes(word));\n});\nconst knowledgeContext = matchedKnowledge.length ? matchedKnowledge : (ticket.knowledgeBase ?? []).slice(0, 3);\nreturn [{ json: { ...ticket, escalationReasons, policyReviewRequired: escalationReasons.length > 0, knowledgeContext } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, 0],
+      "id": "6c2f4df2-7d33-4f71-8d6b-8c2cda62c304",
+      "name": "Support Policy Gate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a careful customer support assistant in draft-only mode. Use only the provided ticket and demo knowledge. Do not invent policies, refunds, timelines, account facts, or completed actions. Never send a message. Return ONLY valid JSON with exactly these keys: category, priority, sentiment, suggestedReply, knowledgeUsed. Allowed category values: technical, billing, account, general. Allowed priority values: low, medium, high. Allowed sentiment values: positive, neutral, negative. The reply must be empathetic, concise, and give only supported next steps. If human review is required, acknowledge the request without promising an outcome.\n\nTicket ID: {{$json.ticketId}}\nFrom: {{$json.from}}\nSubject: {{$json.subject}}\nMessage: {{$json.message}}\nInput valid: {{$json.inputValid}}\nPolicy review required: {{$json.policyReviewRequired}}\nPolicy reasons: {{$json.escalationReasons}}\nDemo knowledge context: {{$json.knowledgeContext}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [896, 0],
+      "id": "c69bd551-261a-44a6-a224-e8d7bfafc405",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": { "model": "llama3:latest", "options": {} },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [832, 208],
+      "id": "c88101b2-2e70-48ad-895d-097924b9d09e",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticket = $items('Support Policy Gate')[0].json;\nconst raw = String($input.first().json.text ?? $input.first().json.response ?? '');\nlet parsed;\ntry {\n  const cleaned = raw.replace(/^```json\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  parsed = { category: 'general', priority: 'medium', sentiment: 'neutral', suggestedReply: 'Thanks for contacting support. We received your message and will review it before replying.', knowledgeUsed: [] };\n}\nconst reasons = Array.isArray(ticket.escalationReasons) ? [...ticket.escalationReasons] : [];\nif (!parsed.suggestedReply) reasons.push('No usable draft reply was returned');\nconst needsHumanReview = ticket.policyReviewRequired || reasons.length > 0 || !ticket.inputValid;\nreturn [{ json: { ticketId: ticket.ticketId, from: ticket.from, subject: ticket.subject, message: ticket.message, category: parsed.category ?? 'general', priority: parsed.priority ?? 'medium', sentiment: parsed.sentiment ?? 'neutral', suggestedReply: parsed.suggestedReply ?? '', needsHumanReview, escalationReason: reasons.length ? reasons.join('; ') : null, knowledgeUsed: parsed.knowledgeUsed ?? [], safetyNote: 'Draft only. No support message was sent and no external system was called.' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 0],
+      "id": "514e08f2-f340-436e-9c25-01119a3238e9",
+      "name": "Format Support Decision"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": { "main": [[{ "node": "Mock Support Data", "type": "main", "index": 0 }]] },
+    "Mock Support Data": { "main": [[{ "node": "Normalize Support Message", "type": "main", "index": 0 }]] },
+    "Normalize Support Message": { "main": [[{ "node": "Support Policy Gate", "type": "main", "index": 0 }]] },
+    "Support Policy Gate": { "main": [[{ "node": "Basic LLM Chain", "type": "main", "index": 0 }]] },
+    "Basic LLM Chain": { "main": [[{ "node": "Format Support Decision", "type": "main", "index": 0 }]] },
+    "Ollama Chat Model": { "ai_languageModel": [[{ "node": "Basic LLM Chain", "type": "ai_languageModel", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1", "binaryMode": "separate" },
+  "versionId": "3a1b3fa0-40a3-4cf3-b6d5-3ec70d6d5f16",
+  "nodeGroups": [],
+  "tags": []
+}
